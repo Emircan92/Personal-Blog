@@ -1,6 +1,7 @@
 import functools
 
 from flask import Flask, flash, render_template, request, redirect, session, url_for
+from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_required, current_user, login_user, logout_user
 from flask_wtf import Form
 from wtforms import StringField, PasswordField, TextAreaField
@@ -12,14 +13,12 @@ from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
 
 from datetime import datetime
 
-
-ADMIN_PASSWORD = 'secret'
-
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'joseas'
+app.secret_key = '|ezulJ_OJC_*;cA'
 db = SQLAlchemy()
+
 
 login_manager = LoginManager()
 login_manager.login_view = "login"
@@ -44,17 +43,25 @@ class Users(db.Model):
 
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String, unique=True, nullable=False)
-    password_plaintext = db.Column(db.String, nullable=False)  # TEMPORARY - TO BE DELETED IN FAVOR OF HASHED PASSWORD
+    _password = db.Column(db.String, nullable=False)
     authenticated = db.Column(db.Boolean, default=False)
 
     def __init__(self, username, password_plaintext):
         self.username = username
-        self.password_plaintext = password_plaintext
+        self.password = password_plaintext
         self.authenticated = False
 
+    @hybrid_property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def password(self, password_plaintext):
+        self._password = bcrypt.generate_password_hash(password_plaintext)
+
     @hybrid_method
-    def is_correct_password(self, plaintext_password):
-        return self.password_plaintext == plaintext_password
+    def is_correct_password(self, password_plaintext):
+        return bcrypt.check_password_hash(self.password, password_plaintext)
 
     @property
     def is_authenticated(self):
@@ -234,4 +241,5 @@ def addpost():
 if __name__ == '__main__':
     db.init_app(app)
     login_manager.init_app(app)
+    bcrypt = Bcrypt(app)
     app.run(debug=True)
