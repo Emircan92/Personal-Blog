@@ -1,6 +1,7 @@
 import functools
 
 from flask import Flask, flash, render_template, request, redirect, session, url_for
+from flask_login import LoginManager, login_required, current_user, login_user, logout_user
 from flask_wtf import Form
 from wtforms import StringField, PasswordField, TextAreaField
 from wtforms.validators import DataRequired, Length, EqualTo, Email
@@ -19,6 +20,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = 'joseas'
 db = SQLAlchemy()
+
+login_manager = LoginManager()
+login_manager.login_view = "login"
 
 
 @app.before_first_request
@@ -74,6 +78,11 @@ class Users(db.Model):
 
     def __repr__(self):
         return '<User {0}>'.format(self.name)
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return Users.query.filter(Users.id == int(user_id)).first()
 
 
 class BlogpostForm(Form):
@@ -210,4 +219,5 @@ def addpost():
 
 if __name__ == '__main__':
     db.init_app(app)
+    login_manager.init_app(app)
     app.run(debug=True)
