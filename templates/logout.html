@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+  <!-- Main Content -->
+  <div class="container">
+    <form action="{{ url_for('logout') }}" class="form-horizontal" method="post">
+    <button class="btn btn-primary" type="submit">Log out</button>
+  </form>
+  </div>
+{% endblock %}
