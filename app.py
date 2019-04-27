@@ -40,6 +40,17 @@ class BlogpostForm(Form):
     content = TextAreaField('Enter your blog post here', validators=[DataRequired()])
 
 
+class LoginForm(Form):
+    username = StringField('Username', validators=[DataRequired(), Length(min=6, max=20)])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6, max=20)])
+
+
+class RegisterForm(Form):
+    username = StringField('Username', validators=[DataRequired(), Length(min=6, max=40)])
+    password = PasswordField('Password', validators=[DataRequired(), Length(min=6, max=40)])
+    confirm = PasswordField('Repeat Password', validators=[DataRequired(), EqualTo('password')])
+
+
 @app.route('/')
 def index():
 

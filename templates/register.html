@@ -1,20 +1,23 @@
 {% extends "base.html" %}
-{% from "formhelper.html" import render_field %}
- 
+{% from "formhelper.html" import render_field %} 
+        
+
 {% block content %}
-<div class="user-registration">
-  <div class="page-header">
-    <h2>Please Register Your New Account</h2>
+<div class="container">
+  <div class="row">
+    <div class="col-lg-8 col-md-10 mx-auto">
+      <form action="{{ url_for('signup2') }}" method="post">
+        {{ form.csrf_token }}
+        <dl>
+        {{ render_field(form.username, placeholder="Username") }}
+        {{ render_field(form.password, placeholder="Password") }}
+        {{ render_field(form.confirm, placeholder="Confirm Password") }}
+        </dl>
+      <button class="btn btn-sm btn-success" type="submit">Register</button>
+    </form>
   </div>
-<form action="{{ url_for('signup') }}" method="post">
-    {{ form.csrf_token }}
-    <dl>
-      {{ render_field(form.email, placeholder="Email address") }}
-      {{ render_field(form.password, placeholder="Password") }}
-      {{ render_field(form.confirm, placeholder="Confirm password") }}
-    </dl>
-    <button class="btn btn-sm btn-success" type="submit">Create New Account</button>
-  </form>
+  <br>
 </div>
- 
+
+
 {% endblock %}
