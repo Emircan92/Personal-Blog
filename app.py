@@ -177,28 +177,27 @@ def search():
     if request.method == 'POST':
         page = request.args.get('page', 1, type=int)
         search = request.form['search']
-        posts = Blogpost.query.order_by(Blogpost.date_posted.desc()).filter(
-            or_(
-                Blogpost.content.contains(search),
-                Blogpost.author.contains(search),
-                Blogpost.title.contains(search)
-            )
-        ).paginate(page, 5, False)
-
-        next_url = url_for('search', page=posts.next_num) \
-            if posts.has_next else None
-        prev_url = url_for('search', page=posts.prev_num) \
-            if posts.has_prev else None
-
-        return render_template('search.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
+        return redirect((url_for('pages', query=search, page=page)))
     return redirect(url_for('index'))
 
 
-@app.route('/pages/<int:page_num>')
-def pages(page_num):
-    posts = Blogpost.query.order_by(Blogpost.date_posted.desc()).paginate(per_page=5, page=page_num, error_out=True)
+@app.route('/pages/<query>')
+def pages(query):
+    page = request.args.get('page', 1, type=int)
+    posts = Blogpost.query.order_by(Blogpost.date_posted.desc()).filter(
+        or_(
+            Blogpost.content.contains(query),
+            Blogpost.author.contains(query),
+            Blogpost.title.contains(query),
+            Blogpost.subtitle.contains(query)
+        )
+    ).paginate(page, 5, False)
 
-    return render_template('pages.html', posts=posts)
+    next_url = url_for('pages', page=posts.next_num, query=query) \
+        if posts.has_next else None
+    prev_url = url_for('pages', page=posts.prev_num, query=query) \
+        if posts.has_prev else None
+    return render_template('pages.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
 
 
 @app.route('/post/<int:post_id>')
