@@ -116,37 +116,34 @@ def index():
     return render_template('index.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
 
 
-def login_required(fn):
-    @functools.wraps(fn)
-    def inner(*args, **kwargs):
-        if session.get('logged_in'):
-            return fn(*args, **kwargs)
-        return redirect(url_for('login', next=request.path))
-    return inner
-
-
-@app.route('/login/', methods=['GET', 'POST'])
+@app.route('/login', methods=['GET', 'POST'])
 def login():
-    if request.method == 'POST' and request.form.get('password'):
-        password = request.form.get('password')
-        # TODO: If using a one-way hash, you would also hash the user-submitted
-        # password and do the comparison on the hashed versions.
-        if password == ADMIN_PASSWORD:
-            session['logged_in'] = True
-            session.permanent = True  # Use cookie to store session.
-            flash('You are now logged in.', 'success')
-            return redirect(url_for('index'))
-        else:
-            flash('Incorrect password.', 'danger')
-    return render_template('login.html')
+    form = LoginForm(request.form)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            user = Users.query.filter_by(username=form.username.data).first()
+            if user is not None and user.is_correct_password(form.password.data):
+                user.authenticated = True
+                db.session.add(user)
+                db.session.commit()
+                login_user(user)
+                flash('Thanks for logging in, {}'.format(current_user.username))
+                return redirect(url_for('index'))
+            else:
+                flash('ERROR! Incorrect login credentials.', 'error')
+    return render_template('login.html', form=form)
 
 
-@app.route('/logout/', methods=['GET', 'POST'])
+@app.route('/logout', methods=['GET', 'POST'])
 @login_required
 def logout():
     if request.method == 'POST':
-        session.clear()
-        flash('You are no longer logged in.', 'success')
+        user = current_user
+        user.authenticated = False
+        db.session.add(user)
+        db.session.commit()
+        logout_user()
+        flash('Goodbye!', 'info')
         return redirect(url_for('index'))
     return render_template('logout.html')
 
