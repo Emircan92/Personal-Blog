@@ -116,6 +116,24 @@ def index():
     return render_template('index.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
 
 
+@app.route('/register', methods=['GET', 'POST'])
+def signup():
+    form = RegisterForm(request.form)
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            try:
+                new_user = Users(form.username.data, form.password.data)
+                new_user.authenticated = True
+                db.session.add(new_user)
+                db.session.commit()
+                flash('Thanks for registering!', 'success')
+                return redirect(url_for('index'))
+            except IntegrityError:
+                db.session.rollback()
+                flash('ERROR! Username ({}) already exists.'.format(form.username.data), 'error')
+    return render_template('register.html', form=form)
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm(request.form)
