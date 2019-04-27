@@ -34,12 +34,12 @@
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('index') }}">Home</a>
           </li>
-          {% if not session.logged_in %}
+          {% if not current_user.is_authenticated %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('login') }}">Log in</a>
           </li>
           {% endif %}
-          {% if session.logged_in %}
+          {% if current_user.is_authenticated %}
           <li class="nav-item">
             <a class="nav-link" href="{{ url_for('add') }}">Add</a>
           </li>
@@ -52,6 +52,11 @@
                  <input type="text" class="form-control mr-sm-2" type="search" id="search" name="search" placeholder="Search" aria-label="Search">
               </form>
           </li>
+          {% if not current_user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link" href="{{ url_for('signup') }}">Register</a>
+          </li>
+          {% endif %}
         </ul>
       </div>
     </div>
@@ -84,15 +89,6 @@
         {% for info_message in get_flashed_messages(category_filter=["info"]) %}
           <div class="alert alert-info alert-dismissible">{{ info_message }}</div>
         {% endfor %}
-
-        {% with messages = get_flashed_messages(with_categories=true) %}
-          {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }}" role="alert"> {{ message }}</div>
-          {% endfor %}
-        {% endif %}
-
-    {% endwith %}
 
   <!-- Main Content -->
   {% block content %}
