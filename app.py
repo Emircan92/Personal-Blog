@@ -1,6 +1,9 @@
 import functools
 
 from flask import Flask, flash, render_template, request, redirect, session, url_for
+from flask_wtf import Form
+from wtforms import StringField, PasswordField, TextAreaField
+from wtforms.validators import DataRequired, Length, EqualTo, Email
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 
@@ -28,6 +31,13 @@ class Blogpost(db.Model):
     author = db.Column(db.String(20))
     date_posted = db.Column(db.DateTime)
     content = db.Column(db.Text)
+
+
+class BlogpostForm(Form):
+    title = StringField('Title', validators=[DataRequired(), Length(min=6, max=40)])
+    subtitle = StringField('Subtitle', validators=[DataRequired(), Length(min=6, max=40)])
+    author = StringField('Author', validators=[DataRequired(), Length(min=6, max=20)])
+    content = TextAreaField('Enter your blog post here', validators=[DataRequired()])
 
 
 @app.route('/')
@@ -117,23 +127,31 @@ def post(post_id):
 @app.route('/add')
 @login_required
 def add():
-    return render_template('add.html')
+    form = BlogpostForm()
+    return render_template('add.html', form=form)
 
 
 @app.route('/addpost', methods=['POST'])
 @login_required
 def addpost():
-    title = request.form['title']
-    subtitle = request.form['subtitle']
-    author = request.form['author']
-    content = request.form['content']
+    form = BlogpostForm()
 
-    post = Blogpost(title=title, subtitle=subtitle, author=author, content=content, date_posted=datetime.now())
+    if request.method == 'POST':
+        if not form.validate():
+            flash('All fields are required.')
+            return render_template('add.html', form=form)
+        else:
+            title = form.title.data
+            subtitle = form.subtitle.data
+            author = form.author.data
+            content = form.content.data
 
-    db.session.add(post)
-    db.session.commit()
+            post = Blogpost(title=title, subtitle=subtitle, author=author, content=content, date_posted=datetime.now())
 
-    return redirect(url_for('index'))
+            db.session.add(post)
+            db.session.commit()
+            return redirect(url_for('index'))
+    return render_template('home.html')
 
 
 if __name__ == '__main__':
