@@ -88,7 +88,6 @@ def load_user(user_id):
 class BlogpostForm(Form):
     title = StringField('Title', validators=[DataRequired(), Length(min=6, max=40)])
     subtitle = StringField('Subtitle', validators=[DataRequired(), Length(min=6, max=40)])
-    author = StringField('Author', validators=[DataRequired(), Length(min=6, max=20)])
     content = TextAreaField('Enter your blog post here', validators=[DataRequired()])
 
 
@@ -221,7 +220,7 @@ def addpost():
         else:
             title = form.title.data
             subtitle = form.subtitle.data
-            author = form.author.data
+            author = current_user.username
             content = form.content.data
 
             post = Blogpost(title=title, subtitle=subtitle, author=author, content=content, date_posted=datetime.now())
