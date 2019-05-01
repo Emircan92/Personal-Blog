@@ -249,6 +249,32 @@ def addpost():
     return render_template('home.html')
 
 
+@app.route('/edit/<int:post_id>', methods=['GET', 'POST'])
+def edit(post_id):
+    form = BlogpostForm(request.form)
+    if request.method == 'POST':
+        form = BlogpostForm(request.form)
+        if form.validate_on_submit():
+            title = form.title.data
+            subtitle = form.subtitle.data
+            content = form.content.data
+
+            update_post = Blogpost.query.filter_by(id=post_id).first()
+            update_post.title = title
+            update_post.subtitle = subtitle
+            update_post.content = content
+            db.session.commit()
+            flash('Your post has been updated!', 'success')
+            return redirect(url_for('post', post_id=post_id))
+
+    post = Blogpost.query.filter(Blogpost.id == post_id).first()
+    form.title.data = post.title
+    form.subtitle.data = post.subtitle
+    form.content.data = post.content
+
+    return render_template('edit.html', post=post, form=form, post_id=post_id)
+
+
 if __name__ == '__main__':
     db.init_app(app)
     login_manager.init_app(app)

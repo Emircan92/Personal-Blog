@@ -1,6 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
+
   <!-- Post Content -->
   <article>
     <div class="container">
@@ -10,13 +11,17 @@
             <h1>{{ post.title }}</h1>
             <h2 class="subheading">{{ post.subtitle }}</h2>
             <span class="meta">Posted by
-              <a href="{{ url_for('user', username=post.author) }}">
               {{ post.author }}
               on {{ post.date_posted.strftime('%B %d, %Y') }}</span>
-          </div>
+            </div>
           {{ post.content }}
+
+          <div class="clearfix">
+          {% if current_user.username == post.author %}
+          <a class="btn btn-primary float-right" href="{{  url_for('edit', post_id=post.id) }}" method="post"> EDIT</a>
+          {% endif %}
         </div>
       </div>
     </div>
   </article>
-{% endblock %}
+  {% endblock %}
