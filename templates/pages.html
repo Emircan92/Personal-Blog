@@ -15,6 +15,7 @@
             </h3>
           </a>
           <p class="post-meta">Posted by
+            <a href="{{ url_for('user', username=post.author) }}">
             {{ post.author }}
             {{ post.date_posted.strftime('%B %d, %Y') }}</p>
         </div>

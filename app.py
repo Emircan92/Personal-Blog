@@ -3,7 +3,7 @@ import functools
 from flask import Flask, flash, render_template, request, redirect, session, url_for
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_required, current_user, login_user, logout_user
-from flask_wtf import Form
+from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, TextAreaField
 from wtforms.validators import DataRequired, Length, EqualTo, Email
 from flask_sqlalchemy import SQLAlchemy
@@ -92,18 +92,18 @@ def load_user(user_id):
     return Users.query.filter(Users.id == int(user_id)).first()
 
 
-class BlogpostForm(Form):
+class BlogpostForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired(), Length(min=6, max=40)])
     subtitle = StringField('Subtitle', validators=[DataRequired(), Length(min=6, max=40)])
     content = TextAreaField('Enter your blog post here', validators=[DataRequired()])
 
 
-class LoginForm(Form):
+class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=6, max=20)])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6, max=20)])
 
 
-class RegisterForm(Form):
+class RegisterForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=6, max=40)])
     password = PasswordField('Password', validators=[DataRequired(), Length(min=6, max=40)])
     confirm = PasswordField('Repeat Password', validators=[DataRequired(), EqualTo('password')])
@@ -198,6 +198,18 @@ def pages(query):
     prev_url = url_for('pages', page=posts.prev_num, query=query) \
         if posts.has_prev else None
     return render_template('pages.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
+
+
+@app.route('/user/<username>')
+def user(username):
+    page = request.args.get('page', 1, type=int)
+    posts = Blogpost.query.order_by(Blogpost.date_posted.desc()).filter(Blogpost.author == username)\
+        .paginate(page, 5, False)
+    next_url = url_for('user', page=posts.next_num, username=username) \
+        if posts.has_next else None
+    prev_url = url_for('user', page=posts.prev_num, username=username) \
+        if posts.has_prev else None
+    return render_template('index.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
 
 
 @app.route('/post/<int:post_id>')
