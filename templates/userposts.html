@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-md-10 mx-auto">
+        {% for post in posts %}
+        <div class="post-preview">
+          <a href="{{ url_for('post', post_id=post.id) }}">
+            <h2 class="post-title">
+            {{ post.title }}
+            <div class="clearfix">
+              <a class="btn btn-primary float-right" href="{{ url_for('edit', post_id=post.id) }}">Edit</a>
+            </div>
+            </h2>
+          </a>
+          <p class="post-meta">Posted by
+            {{ post.author }}
+            {{ post.date_posted.strftime('%B %d, %Y') }}</p>
+            
+        </div>
+        {% endfor %}
+        <div class="clearfix">
+          {% if prev_url %}
+          <a class="btn btn-primary float-left" href="{{ prev_url }}">&larr; Newer Posts</a>
+          {% endif %}
+
+          {% if next_url %}
+          <a class="btn btn-primary float-right" href="{{ next_url }}">Older Posts &rarr;</a>
+          {% endif %}
+        </div>
+        <hr>
+        <!-- Pager -->
+      </div>
+    </div>
+</div>
+{% endblock %}

@@ -275,6 +275,19 @@ def edit(post_id):
     return render_template('edit.html', post=post, form=form, post_id=post_id)
 
 
+@app.route('/userposts/<int:user_id>')
+def userposts(user_id):
+    page = request.args.get('page', 1, type=int)
+    user = Users.query.filter(Users.id == user_id).first()
+    posts = Blogpost.query.filter(Blogpost.author == user.username).paginate(page, 5, False)
+    next_url = url_for('userposts', page=posts.next_num, user_id=user_id) \
+        if posts.has_next else None
+    prev_url = url_for('userposts', page=posts.prev_num, user_id=user_id) \
+        if posts.has_prev else None
+    return render_template ('userposts.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
+
+
+
 if __name__ == '__main__':
     db.init_app(app)
     login_manager.init_app(app)
