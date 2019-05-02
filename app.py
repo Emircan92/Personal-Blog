@@ -275,6 +275,15 @@ def edit(post_id):
     return render_template('edit.html', post=post, form=form, post_id=post_id)
 
 
+@app.route('/delete/<int:post_id>')
+def delete(post_id):
+    delete_post = Blogpost.query.filter_by(id=post_id).first()
+    db.session.delete(delete_post)
+    db.session.commit()
+    flash('Your post has been deleted!', 'success')
+    return render_template('userposts.html')
+
+
 @app.route('/userposts/<int:user_id>')
 def userposts(user_id):
     page = request.args.get('page', 1, type=int)

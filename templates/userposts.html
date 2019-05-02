@@ -11,6 +11,7 @@
             {{ post.title }}
             <div class="clearfix">
               <a class="btn btn-primary float-right" href="{{ url_for('edit', post_id=post.id) }}">Edit</a>
+              <a class="btn btn-primary float-right" href="{{ url_for('delete', post_id=post.id) }}" method="post">Delete</a>
             </div>
             </h2>
           </a>
