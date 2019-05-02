@@ -197,7 +197,7 @@ def pages(query):
         if posts.has_next else None
     prev_url = url_for('pages', page=posts.prev_num, query=query) \
         if posts.has_prev else None
-    return render_template('pages.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
+    return render_template('index.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
 
 
 @app.route('/user/<username>')
@@ -268,6 +268,8 @@ def edit(post_id):
             return redirect(url_for('post', post_id=post_id))
 
     post = Blogpost.query.filter(Blogpost.id == post_id).first()
+    if post.author != current_user.username:
+        return redirect(url_for('index'))
     form.title.data = post.title
     form.subtitle.data = post.subtitle
     form.content.data = post.content
@@ -278,14 +280,18 @@ def edit(post_id):
 @app.route('/delete/<int:post_id>')
 def delete(post_id):
     delete_post = Blogpost.query.filter_by(id=post_id).first()
+    if delete_post.author != current_user.username:
+        return redirect(url_for('index'))
     db.session.delete(delete_post)
     db.session.commit()
     flash('Your post has been deleted!', 'success')
     return render_template('userposts.html')
 
 
-@app.route('/userposts/<int:user_id>')
+@app.route('/userposts/<string:user_id>')
 def userposts(user_id):
+    if user_id != current_user.get_id():
+        return redirect(url_for('index'))
     page = request.args.get('page', 1, type=int)
     user = Users.query.filter(Users.id == user_id).first()
     posts = Blogpost.query.filter(Blogpost.author == user.username).paginate(page, 5, False)
