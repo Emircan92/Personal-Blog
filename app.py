@@ -107,7 +107,6 @@ class RegisterForm(FlaskForm):
 
 @app.route('/')
 def index():
-
     page = request.args.get('page', 1, type=int)
     posts = Blogpost.query.order_by(Blogpost.date_posted.desc()).paginate(page, 5, False)
     next_url = url_for('index', page=posts.next_num) \
@@ -115,7 +114,10 @@ def index():
     prev_url = url_for('index', page=posts.prev_num) \
         if posts.has_prev else None
 
-    return render_template('index.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
+    return render_template('index.html',
+                           posts=posts.items,
+                           next_url=next_url,
+                           prev_url=prev_url)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -133,6 +135,7 @@ def signup():
             except IntegrityError:
                 db.session.rollback()
                 flash('ERROR! Username ({}) already exists.'.format(form.username.data), 'error')
+
     return render_template('register.html', form=form)
 
 
@@ -151,6 +154,7 @@ def login():
                 return redirect(url_for('index'))
             else:
                 flash('ERROR! Incorrect login credentials.', 'error')
+
     return render_template('login.html', form=form)
 
 
@@ -165,7 +169,45 @@ def logout():
         logout_user()
         flash('Goodbye!', 'info')
         return redirect(url_for('index'))
+
     return render_template('logout.html')
+
+
+@app.route('/user/<username>')
+def user(username):
+    page = request.args.get('page', 1, type=int)
+    posts = Blogpost.query.order_by(Blogpost.date_posted.desc()).filter(Blogpost.author == username)\
+        .paginate(page, 5, False)
+
+    next_url = url_for('user', page=posts.next_num, username=username) \
+        if posts.has_next else None
+    prev_url = url_for('user', page=posts.prev_num, username=username) \
+        if posts.has_prev else None
+
+    return render_template('index.html',
+                           posts=posts.items,
+                           next_url=next_url,
+                           prev_url=prev_url)
+
+
+@app.route('/userposts/<string:user_id>')
+def userposts(user_id):
+    if user_id != current_user.get_id():
+        return redirect(url_for('index'))
+
+    page = request.args.get('page', 1, type=int)
+    user = Users.query.filter(Users.id == user_id).first()
+    posts = Blogpost.query.filter(Blogpost.author == user.username).paginate(page, 5, False)
+
+    next_url = url_for('userposts', page=posts.next_num, user_id=user_id) \
+        if posts.has_next else None
+    prev_url = url_for('userposts', page=posts.prev_num, user_id=user_id) \
+        if posts.has_prev else None
+
+    return render_template('userposts.html',
+                           posts=posts.items,
+                           next_url=next_url,
+                           prev_url=prev_url)
 
 
 @app.route('/search/', methods=['GET', 'POST'])
@@ -174,6 +216,7 @@ def search():
         page = request.args.get('page', 1, type=int)
         search = request.form['search']
         return redirect((url_for('pages', query=search, page=page)))
+
     return redirect(url_for('index'))
 
 
@@ -193,25 +236,13 @@ def pages(query):
         if posts.has_next else None
     prev_url = url_for('pages', page=posts.prev_num, query=query) \
         if posts.has_prev else None
-    return render_template('index.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
 
-
-@app.route('/user/<username>')
-def user(username):
-    page = request.args.get('page', 1, type=int)
-    posts = Blogpost.query.order_by(Blogpost.date_posted.desc()).filter(Blogpost.author == username)\
-        .paginate(page, 5, False)
-    next_url = url_for('user', page=posts.next_num, username=username) \
-        if posts.has_next else None
-    prev_url = url_for('user', page=posts.prev_num, username=username) \
-        if posts.has_prev else None
     return render_template('index.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
 
 
 @app.route('/post/<int:post_id>')
 def post(post_id):
     post = Blogpost.query.filter_by(id=post_id).one()
-
     return render_template('post.html', post=post)
 
 
@@ -237,11 +268,16 @@ def addpost():
             author = current_user.username
             content = form.content.data
 
-            post = Blogpost(title=title, subtitle=subtitle, author=author, content=content, date_posted=datetime.now())
+            post = Blogpost(title=title,
+                            subtitle=subtitle,
+                            author=author,
+                            content=content,
+                            date_posted=datetime.now())
 
             db.session.add(post)
             db.session.commit()
             return redirect(url_for('index'))
+
     return render_template('home.html')
 
 
@@ -266,11 +302,15 @@ def edit(post_id):
     post = Blogpost.query.filter(Blogpost.id == post_id).first()
     if post.author != current_user.username:
         return redirect(url_for('index'))
+
     form.title.data = post.title
     form.subtitle.data = post.subtitle
     form.content.data = post.content
 
-    return render_template('edit.html', post=post, form=form, post_id=post_id)
+    return render_template('edit.html',
+                           post=post,
+                           form=form,
+                           post_id=post_id)
 
 
 @app.route('/delete/<int:post_id>')
@@ -278,29 +318,15 @@ def delete(post_id):
     delete_post = Blogpost.query.filter_by(id=post_id).first()
     if delete_post.author != current_user.username:
         return redirect(url_for('index'))
+
     db.session.delete(delete_post)
     db.session.commit()
     flash('Your post has been deleted!', 'success')
     return render_template('userposts.html')
 
 
-@app.route('/userposts/<string:user_id>')
-def userposts(user_id):
-    if user_id != current_user.get_id():
-        return redirect(url_for('index'))
-    page = request.args.get('page', 1, type=int)
-    user = Users.query.filter(Users.id == user_id).first()
-    posts = Blogpost.query.filter(Blogpost.author == user.username).paginate(page, 5, False)
-    next_url = url_for('userposts', page=posts.next_num, user_id=user_id) \
-        if posts.has_next else None
-    prev_url = url_for('userposts', page=posts.prev_num, user_id=user_id) \
-        if posts.has_prev else None
-    return render_template ('userposts.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
-
-
 @app.errorhandler(404)
 def page_not_found(e):
-    # note that we set the 404 status explicitly
     return render_template('404.html'), 404
 
 
