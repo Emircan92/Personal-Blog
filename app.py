@@ -1,5 +1,3 @@
-import functools
-
 from flask import Flask, flash, render_template, request, redirect, session, url_for
 from flask_bcrypt import Bcrypt
 from flask_login import LoginManager, login_required, current_user, login_user, logout_user
@@ -10,16 +8,14 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.hybrid import hybrid_property, hybrid_method
-
 from datetime import datetime
 
+# Blog Configuration values.
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.secret_key = '|ezulJ_OJC_*;cA'
 db = SQLAlchemy()
-
-
 login_manager = LoginManager()
 login_manager.login_view = "login"
 
@@ -79,14 +75,14 @@ class Users(db.Model):
         return False
 
     def get_id(self):
-        """Return the email address to satisfy Flask-Login's requirements."""
-        """Requires use of Python 3"""
+        """Return the username to satisfy Flask-Login's requirements."""
         return str(self.id)
 
     def __repr__(self):
         return '<User {0}>'.format(self.name)
 
 
+# This callback is used to reload the user object from the user ID stored in the session.
 @login_manager.user_loader
 def load_user(user_id):
     return Users.query.filter(Users.id == int(user_id)).first()
@@ -95,7 +91,7 @@ def load_user(user_id):
 class BlogpostForm(FlaskForm):
     title = StringField('Title', validators=[DataRequired(), Length(min=6, max=40)])
     subtitle = StringField('Subtitle', validators=[DataRequired(), Length(min=6, max=40)])
-    content = TextAreaField('Enter your blog post here', validators=[DataRequired()])
+    content = TextAreaField('Enter your blog post here', render_kw={"rows": 11, "cols": 70}, validators=[DataRequired()])
 
 
 class LoginForm(FlaskForm):
@@ -301,6 +297,11 @@ def userposts(user_id):
         if posts.has_prev else None
     return render_template ('userposts.html', posts=posts.items, next_url=next_url, prev_url=prev_url)
 
+
+@app.errorhandler(404)
+def page_not_found(e):
+    # note that we set the 404 status explicitly
+    return render_template('404.html'), 404
 
 
 if __name__ == '__main__':
