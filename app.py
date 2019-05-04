@@ -197,7 +197,8 @@ def userposts(user_id):
 
     page = request.args.get('page', 1, type=int)
     user = Users.query.filter(Users.id == user_id).first()
-    posts = Blogpost.query.filter(Blogpost.author == user.username).paginate(page, 5, False)
+    posts = Blogpost.query.order_by(Blogpost.date_posted.desc()).filter(Blogpost.author == user.username).\
+        paginate(page, 5, False)
 
     next_url = url_for('userposts', page=posts.next_num, user_id=user_id) \
         if posts.has_next else None

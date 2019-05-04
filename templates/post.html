@@ -1,5 +1,8 @@
 {% extends 'base.html' %}
-
+{% block title %}
+  <h1>{{ post.title }}</h1>
+  <h2> Posted by {{ post.author }} on {{ post.date_posted.strftime('%B %d, %Y') }}</h2>
+{% endblock %}
 {% block content %}
 
   <!-- Post Content -->
@@ -8,14 +11,9 @@
       <div class="row">
         <div class="col-lg-8 col-md-10 mx-auto">
           <div class="post-heading">
-            <h1>{{ post.title }}</h1>
             <h2 class="subheading">{{ post.subtitle }}</h2>
-            <span class="meta">Posted by
-              {{ post.author }}
-              on {{ post.date_posted.strftime('%B %d, %Y') }}</span>
-            </div>
+          </div>
           {{ post.content }}
-
           <div class="clearfix">
           {% if current_user.username == post.author %}
           <a class="btn btn-primary float-right" href="{{  url_for('edit', post_id=post.id) }}" method="post"> EDIT</a>
