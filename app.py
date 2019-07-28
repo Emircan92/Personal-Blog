@@ -14,7 +14,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///blog.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = '|ezulJ_OJC_*;cA'
+app.secret_key = 'you_will_never_guess'
 db = SQLAlchemy()
 login_manager = LoginManager()
 login_manager.login_view = "login"
